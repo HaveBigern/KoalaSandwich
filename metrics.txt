@@ -1,0 +1,16 @@
+Class Name: Bird
+ WMC: 3
+ NOC: 0
+ DIT: 3
+Class Name: Dog
+ WMC: 3
+ NOC: 0
+ DIT: 3
+Class Name: MainClass
+ WMC: 1
+ NOC: 0
+ DIT: 1
+Class Name: Animal
+ WMC: 3
+ NOC: 2
+ DIT: 2
