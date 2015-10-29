@@ -5,19 +5,19 @@
  */
 package com.strath.view;
 
+import com.github.javaparser.ASTHelper;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.BufferedWriter;
@@ -362,7 +362,6 @@ public class MainGUI extends javax.swing.JFrame {
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
             clazz = new Clazz(n.getName());
             clazz.setWmc(0);
-            System.out.println("Class Name: " + n.getName());
             if (n.getImplements() != null) {
                 String implementsString = "Implements: ";
                 for (ClassOrInterfaceType coi : n.getImplements()) {
@@ -426,35 +425,20 @@ public class MainGUI extends javax.swing.JFrame {
             tempArray.add(methud);
             clazz.setMethods(tempArray);
             clazz.setWmc(clazz.getWmc() + 1);
-            super.visit(n, arg);
+            
+            BlockStmt block = new BlockStmt();
+            NameExpr systemOut = ASTHelper.createNameExpr("System.out");
+            MethodCallExpr call = new MethodCallExpr(systemOut, "println");
+            ASTHelper.addArgument(call, new StringLiteralExpr(n.getName()));
+            ASTHelper.addStmt(block, call);
+            BlockStmt oldBody = n.getBody();
+            ASTHelper.addStmt(block, oldBody);
+            n.setBody(block);
         }
 
         @Override
         public void visit(ConstructorDeclaration n, Object arg) {
             clazz.setWmc(clazz.getWmc() + 1);
         }
-
-        @Override
-        public void visit(ObjectCreationExpr n, Object arg) {
-            //System.out.println("Object Creation: " + n.getType());
-        }
-        
-        
-        public void visit(MethodCallExpr n, Object arg) {
-            System.out.println("Method Call: " + n.getName());
-            if(n.getParentNode() instanceof ExpressionStmt) {
-                ExpressionStmt expSt = (ExpressionStmt) n.getParentNode();
-                Expression exp = expSt.getExpression();
-                if(exp.getChildrenNodes() != null && !(exp.getChildrenNodes().isEmpty())) {
-                    Node childOne = exp.getChildrenNodes().get(0);
-                    if(childOne instanceof NameExpr) {
-                        //Map<
-                        NameExpr extracted = (NameExpr) childOne;
-                        System.out.println("Child Node Name: " + extracted.getName());
-                    }
-                }    
-            }
-        }
-
     }
 }
