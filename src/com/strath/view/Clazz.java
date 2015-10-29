@@ -18,6 +18,16 @@ public class Clazz {
     private String implementsStrings, extendsStrings;
     
     private int wmc, noc, dit;
+    
+    private ArrayList<String> coupledClasses;
+
+    public ArrayList<String> getCoupledClasses() {
+        return coupledClasses;
+    }
+
+    public void setCoupledClasses(ArrayList<String> coupledClasses) {
+        this.coupledClasses = coupledClasses;
+    }
 
     public int getDit() {
         return dit;

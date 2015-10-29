@@ -13,12 +13,14 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,6 +32,7 @@ import java.io.PrintWriter;
 import static java.lang.System.in;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import javax.swing.JFileChooser;
 import static org.apache.commons.io.FileUtils.listFiles;
 
@@ -357,6 +360,10 @@ public class MainGUI extends javax.swing.JFrame {
     private static class AnalyserVisitor extends VoidVisitorAdapter {
 
         private Clazz clazz;
+        
+        private HashMap<String, ArrayList<String>> classToMethodCallsMap = new HashMap<>();
+        
+        private HashMap<String, ArrayList<String>> methodToVisibleObjectsMap = new HashMap<>();
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
@@ -417,6 +424,14 @@ public class MainGUI extends javax.swing.JFrame {
         @Override
         public void visit(MethodDeclaration n, Object arg) {
             Methud methud = new Methud(n.getName());
+            ArrayList<String> visibleObjects = new ArrayList<>();
+            if(clazz.getFields() != null) {
+                for(Feeld field : clazz.getFields()) {
+                    visibleObjects.add(field.getName());
+                }
+            }
+            System.out.println(n.getParameters());
+            //methodToVisibleObjectsMap.put(n.getName, null)
             ArrayList<Methud> tempArray;
             if (clazz.getMethods() != null) {
                 tempArray = clazz.getMethods();
@@ -436,24 +451,36 @@ public class MainGUI extends javax.swing.JFrame {
 
         @Override
         public void visit(ObjectCreationExpr n, Object arg) {
-            //System.out.println("Object Creation: " + n.getType());
+            ArrayList<String> coupled = clazz.getCoupledClasses();
+            if(!coupled.contains(n.getType().toString())) {
+                coupled.add(n.getType().toString());
+            }
+            clazz.setCoupledClasses(coupled);
         }
         
+        @Override
+        public void visit(ReferenceType n, Object arg) {
+            //System.out.println("Reference Type: " + n.getType());
+        }
+        
+        @Override
+        public void visit(VariableDeclarator n, Object arg) {
+            System.out.println("Variable Declarator: " + n);
+            System.out.println("Variable Declarator Kids: " + n.getChildrenNodes());
+        }
         
         public void visit(MethodCallExpr n, Object arg) {
-            System.out.println("Method Call: " + n.getName());
-            if(n.getParentNode() instanceof ExpressionStmt) {
-                ExpressionStmt expSt = (ExpressionStmt) n.getParentNode();
-                Expression exp = expSt.getExpression();
-                if(exp.getChildrenNodes() != null && !(exp.getChildrenNodes().isEmpty())) {
-                    Node childOne = exp.getChildrenNodes().get(0);
-                    if(childOne instanceof NameExpr) {
-                        //Map<
-                        NameExpr extracted = (NameExpr) childOne;
-                        System.out.println("Child Node Name: " + extracted.getName());
-                    }
-                }    
-            }
+            //System.out.println("Method Call Name: " + n.getName());
+//            if(n.getParentNode() instanceof ExpressionStmt) {
+//                ExpressionStmt expSt = (ExpressionStmt) n.getParentNode();
+//                Expression exp = expSt.getExpression();
+//                if(exp.getChildrenNodes() != null && !(exp.getChildrenNodes().isEmpty())) {
+//                    Node childOne = exp.getChildrenNodes().get(0);
+//                    if(childOne instanceof NameExpr) {
+//                        NameExpr extracted = (NameExpr) childOne;
+//                    }
+//                }    
+//            }
         }
 
     }

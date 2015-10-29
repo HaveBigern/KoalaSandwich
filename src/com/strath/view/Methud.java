@@ -10,7 +10,7 @@ package com.strath.view;
  * @author npb11143
  */
 public class Methud {
-    
+        
     private String name;
 
     public String getName() {
